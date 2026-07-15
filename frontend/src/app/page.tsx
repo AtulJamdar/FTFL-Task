@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AxiosError } from "axios";
 import API from "@/src/services/api";
 
 type Slot = {
@@ -9,6 +10,18 @@ type Slot = {
   capacity: number;
   bookedCount: number;
   remainingCapacity: number;
+};
+
+const extractErrorMessage = (error: unknown): string => {
+  if (error instanceof AxiosError && error.response?.data?.error) {
+    return error.response.data.error as string;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Booking failed";
 };
 
 export default function Home() {
@@ -52,7 +65,7 @@ export default function Home() {
       setBookingId(slotId);
       await fetchSlots();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Booking failed";
+      const message = extractErrorMessage(error);
       setError(message);
     } finally {
       bookingLockRef.current.delete(slotId);

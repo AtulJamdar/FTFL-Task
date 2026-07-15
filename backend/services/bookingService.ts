@@ -3,6 +3,20 @@ import { Booking, IBooking } from '../models/Booking';
 import { Types } from 'mongoose';
 import { BookingError } from '../types/booking';
 
+export const mapBookingError = (error: unknown): BookingError => {
+  const bookingError = error as BookingError & { name?: string; code?: number };
+
+  if (bookingError?.name === 'CastError') {
+    return { status: 400, message: 'Invalid slot ID format' } as BookingError;
+  }
+
+  if (bookingError?.code === 11000) {
+    return { status: 409, message: 'You already booked this slot' } as BookingError;
+  }
+
+  return { status: 500, message: 'Booking processing failed' } as BookingError;
+};
+
 export class BookingService {
   static async bookSlot(slotId: string, userId: string): Promise<IBooking> {
     if (!Types.ObjectId.isValid(slotId)) {
@@ -22,11 +36,7 @@ export class BookingService {
         { returnDocument: 'after' }
       );
     } catch (error: unknown) {
-      const bookingError = error as BookingError & { name?: string };
-      if (bookingError?.name === 'CastError') {
-        throw { status: 400, message: 'Invalid slot ID format' } as BookingError;
-      }
-      throw { status: 500, message: 'Booking processing failed' } as BookingError;
+      throw mapBookingError(error);
     }
 
     if (!updatedSlot) {
@@ -40,13 +50,13 @@ export class BookingService {
     try {
       const booking = await Booking.create({ slotId, userId });
       return booking;
-    } catch (_error: unknown) {
+    } catch (error: unknown) {
       await Slot.findOneAndUpdate(
         { _id: slotId, bookedCount: { $gt: 0 } },
         { $inc: { bookedCount: -1 } },
         { returnDocument: 'after' }
       );
-      throw { status: 500, message: 'Booking processing failed' } as BookingError;
+      throw mapBookingError(error);
     }
   }
 }
