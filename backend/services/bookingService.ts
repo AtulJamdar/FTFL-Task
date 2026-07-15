@@ -1,4 +1,4 @@
-import { Slot } from '../models/Slot';
+import { Slot, ISlot } from '../models/Slot';
 import { Booking, IBooking } from '../models/Booking';
 import { Types } from 'mongoose';
 import { BookingError } from '../types/booking';
@@ -18,12 +18,12 @@ export const mapBookingError = (error: unknown): BookingError => {
 };
 
 export class BookingService {
-  static async bookSlot(slotId: string, userId: string): Promise<IBooking> {
+  static async bookSlot(slotId: string, userId: string): Promise<{ booking: IBooking; slot: { _id: string; title: string; capacity: number; bookedCount: number; remainingCapacity: number } }> {
     if (!Types.ObjectId.isValid(slotId)) {
       throw { status: 400, message: 'Invalid slot ID format' } as BookingError;
     }
 
-    let updatedSlot;
+    let updatedSlot: ISlot | null = null;
     try {
       updatedSlot = await Slot.findOneAndUpdate(
         {
@@ -49,7 +49,14 @@ export class BookingService {
 
     try {
       const booking = await Booking.create({ slotId, userId });
-      return booking;
+      const slotPayload = {
+        _id: updatedSlot._id.toString(),
+        title: updatedSlot.title,
+        capacity: updatedSlot.capacity,
+        bookedCount: updatedSlot.bookedCount,
+        remainingCapacity: Math.max(0, updatedSlot.capacity - updatedSlot.bookedCount),
+      };
+      return { booking, slot: slotPayload };
     } catch (error: unknown) {
       await Slot.findOneAndUpdate(
         { _id: slotId, bookedCount: { $gt: 0 } },

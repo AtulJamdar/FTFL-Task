@@ -21,6 +21,7 @@ export const getSlotsController = async (_req: Request, res: Response): Promise<
         capacity,
         bookedCount,
         remainingCapacity,
+        remaining: remainingCapacity,
       };
     });
 
@@ -46,8 +47,12 @@ export const bookSlotController = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const booking = await BookingService.bookSlot(id, userId);
-    res.status(201).json({ message: 'Slot booked successfully', booking });
+    const result = await BookingService.bookSlot(id, userId);
+    res.status(201).json({
+      message: 'Slot booked successfully',
+      booking: result.booking,
+      slot: result.slot,
+    });
   } catch (error: unknown) {
     const bookingError = error as BookingError;
     const statusCode = bookingError.status || 500;
@@ -65,7 +70,10 @@ export const getBookingsController = async (req: Request, res: Response): Promis
       return;
     }
 
-    const bookings = await Booking.find({ userId }).sort({ createdAt: -1 });
+    const bookings = await Booking.find({ userId }).sort({ createdAt: -1 }).populate({
+      path: 'slotId',
+      select: 'title capacity bookedCount',
+    });
     res.status(200).json(bookings);
   } catch (error: unknown) {
     const bookingError = error as BookingError;

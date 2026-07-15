@@ -6,6 +6,7 @@ export interface SlotSummary {
   capacity: number;
   bookedCount: number;
   remainingCapacity: number;
+  remaining: number;
 }
 
 export interface BookingRequestBody {
