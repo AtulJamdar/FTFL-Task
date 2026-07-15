@@ -2,13 +2,13 @@
 
 A simple MERN stack slot-booking app with atomic booking protection and a minimal frontend UI.
 
-## How prevented overbooking?
+## How overbooking is prevented
 
 Booking uses MongoDB's atomic `findOneAndUpdate()` with a filter that checks `bookedCount < capacity` and increments the count in the same operation. Because the condition and increment execute atomically, concurrent requests cannot increment beyond capacity. If no document matches, the API returns HTTP 409.
 
 ## Tradeoff
 
-I chose `findOneAndUpdate()` over MongoDB transactions because only one document requires synchronization. This reduces complexity and improves performance while still guaranteeing correctness.
+I chose `findOneAndUpdate()` over MongoDB transactions because only one document requires synchronization. This keeps the implementation simpler and faster while still guaranteeing correctness.
 
 ## Setup
 
@@ -16,13 +16,34 @@ I chose `findOneAndUpdate()` over MongoDB transactions because only one document
 git clone <repo-url>
 cd FTFL-Task
 npm install
+```
+
+### Run backend
+
+```bash
+cd backend
 npm run dev
 ```
 
-## Run the app
+### Run frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+### Local URLs
 
 - Backend API: http://localhost:5000/api
 - Frontend UI: http://localhost:3000
+
+### Seed demo data
+
+If the database is empty, the backend seeds a few sample slots automatically on startup. You can also seed them manually by calling:
+
+```bash
+curl -X POST http://localhost:5000/api/seed
+```
 
 ## Final Testing Checklist
 

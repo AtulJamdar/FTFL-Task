@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db';
 import bookingRoutes from './routes/bookingRoutes';
+import { seedSlots } from './services/seedService';
 
 dotenv.config();
 
@@ -19,7 +20,8 @@ app.get('/', (_req, res) => {
 app.use('/api', bookingRoutes);
 
 connectDB()
-  .then(() => {
+  .then(async () => {
+    await seedSlots();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

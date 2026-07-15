@@ -4,6 +4,7 @@ import { Booking } from '../models/Booking';
 import { BookingService } from '../services/bookingService';
 import { Types } from 'mongoose';
 import { BookingError, BookingRequestBody, SlotSummary } from '../types/booking';
+import { seedSlots } from '../services/seedService';
 
 export const getSlotsController = async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -69,5 +70,16 @@ export const getBookingsController = async (req: Request, res: Response): Promis
   } catch (error: unknown) {
     const bookingError = error as BookingError;
     res.status(500).json({ error: bookingError.message || 'Failed to fetch bookings' });
+  }
+};
+
+export const seedSlotsController = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    await seedSlots();
+    const slots = await Slot.find({}).sort({ createdAt: -1 });
+    res.status(200).json({ message: 'Seeded default slots', count: slots.length, slots });
+  } catch (error: unknown) {
+    const bookingError = error as BookingError;
+    res.status(500).json({ error: bookingError.message || 'Failed to seed slots' });
   }
 };
