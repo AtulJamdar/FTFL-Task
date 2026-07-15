@@ -13,3 +13,4 @@ router.post('/slots/:id/book', bookSlotController);
 router.get('/bookings', getBookingsController);
 
 export default router;
+sdfs
