@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Slot } from '../models/Slot';
 import { Booking } from '../models/Booking';
 import { BookingService } from '../services/bookingService';
+import { Types } from 'mongoose';
 
 export const getSlotsController = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -33,8 +34,13 @@ export const bookSlotController = async (req: Request, res: Response): Promise<v
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id; // Matches /slots/:id/book
     const { userId } = req.body;
 
-    if (!userId) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
       res.status(400).json({ error: 'userId is required' });
+      return;
+    }
+
+    if (!Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: 'Invalid slot ID format' });
       return;
     }
 
@@ -42,6 +48,7 @@ export const bookSlotController = async (req: Request, res: Response): Promise<v
     res.status(201).json({ message: 'Slot booked successfully', booking });
   } catch (error: any) {
     const statusCode = error.status || 500;
-    res.status(statusCode).json({ error: error.message || 'Internal Server Error' });
+    const message = error.message || 'Internal Server Error';
+    res.status(statusCode).json({ error: message });
   }
 };

@@ -8,16 +8,24 @@ export class BookingService {
       throw { status: 400, message: 'Invalid slot ID format' };
     }
 
-    const updatedSlot = await Slot.findOneAndUpdate(
-      {
-        _id: slotId,
-        $expr: { $lt: ['$bookedCount', '$capacity'] },
-      },
-      {
-        $inc: { bookedCount: 1 },
-      },
-      { new: true }
-    );
+    let updatedSlot;
+    try {
+      updatedSlot = await Slot.findOneAndUpdate(
+        {
+          _id: slotId,
+          $expr: { $lt: ['$bookedCount', '$capacity'] },
+        },
+        {
+          $inc: { bookedCount: 1 },
+        },
+        { new: true }
+      );
+    } catch (error: any) {
+      if (error?.name === 'CastError') {
+        throw { status: 400, message: 'Invalid slot ID format' };
+      }
+      throw { status: 500, message: 'Booking processing failed' };
+    }
 
     if (!updatedSlot) {
       const slotExists = await Slot.findById(slotId);
