@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { bookSlotController } from '../controllers/bookingController';
-import { getSlotsController } from '../controllers/bookingController'; // Import the new controller
+import { bookSlotController, getBookingsController, getSlotsController } from '../controllers/bookingController';
 
 const router = Router();
 
@@ -9,5 +8,8 @@ router.get('/slots', getSlotsController);
 
 // Phase 4 Endpoint
 router.post('/slots/:id/book', bookSlotController);
+
+// Phase 6 Endpoint
+router.get('/bookings', getBookingsController);
 
 export default router;

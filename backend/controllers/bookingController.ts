@@ -52,3 +52,19 @@ export const bookSlotController = async (req: Request, res: Response): Promise<v
     res.status(statusCode).json({ error: message });
   }
 };
+
+export const getBookingsController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      res.status(400).json({ error: 'userId is required' });
+      return;
+    }
+
+    const bookings = await Booking.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json(bookings);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to fetch bookings' });
+  }
+};
