@@ -8,6 +8,6 @@ const router = Router();
 router.get('/slots', getSlotsController);
 
 // Phase 4 Endpoint
-router.post('/slots/:slotId/book', bookSlotController);
+router.post('/slots/:id/book', bookSlotController);
 
 export default router;

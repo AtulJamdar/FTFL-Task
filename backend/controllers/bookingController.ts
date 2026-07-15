@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Slot } from '../models/Slot';
 import { Booking } from '../models/Booking';
+import { BookingService } from '../services/bookingService';
 
 export const getSlotsController = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -29,29 +30,18 @@ export const getSlotsController = async (req: Request, res: Response): Promise<v
 
 export const bookSlotController = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { slotId } = req.params;
-    const slot = await Slot.findById(slotId);
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id; // Matches /slots/:id/book
+    const { userId } = req.body;
 
-    if (!slot) {
-      res.status(404).json({ error: 'Slot not found' });
+    if (!userId) {
+      res.status(400).json({ error: 'userId is required' });
       return;
     }
 
-    if (slot.bookedCount >= slot.capacity) {
-      res.status(400).json({ error: 'Slot is fully booked' });
-      return;
-    }
-
-    slot.bookedCount += 1;
-    await slot.save();
-
-    const booking = await Booking.create({
-      slotId: slot._id,
-      userId: req.body?.userId || 'anonymous',
-    });
-
+    const booking = await BookingService.bookSlot(id, userId);
     res.status(201).json({ message: 'Slot booked successfully', booking });
   } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Failed to book slot' });
+    const statusCode = error.status || 500;
+    res.status(statusCode).json({ error: error.message || 'Internal Server Error' });
   }
 };
