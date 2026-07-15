@@ -18,7 +18,7 @@ export class BookingService {
         {
           $inc: { bookedCount: 1 },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
     } catch (error: any) {
       if (error?.name === 'CastError') {
@@ -39,7 +39,11 @@ export class BookingService {
       const booking = await Booking.create({ slotId, userId });
       return booking;
     } catch (error: any) {
-      await Slot.findByIdAndUpdate(slotId, { $inc: { bookedCount: -1 } });
+      await Slot.findOneAndUpdate(
+        { _id: slotId, bookedCount: { $gt: 0 } },
+        { $inc: { bookedCount: -1 } },
+        { returnDocument: 'after' }
+      );
       throw { status: 500, message: 'Booking processing failed' };
     }
   }
